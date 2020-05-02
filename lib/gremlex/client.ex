@@ -14,6 +14,7 @@ defmodule Gremlex.Client do
           | {:error, :script_evaluation_error, String.t()}
           | {:error, :server_timeout, String.t()}
           | {:error, :server_serialization_error, String.t()}
+          | {:error, :websocket_closed, nil}
 
   require Logger
   alias Gremlex.Request
@@ -85,9 +86,13 @@ defmodule Gremlex.Client do
       |> Request.new()
       |> Poison.encode!()
 
-    :poolboy.transaction(:gremlex, fn worker_pid ->
-      GenServer.call(worker_pid, {:query, payload, timeout}, timeout)
-    end, timeout)
+    :poolboy.transaction(
+      :gremlex,
+      fn worker_pid ->
+        GenServer.call(worker_pid, {:query, payload, timeout}, timeout)
+      end,
+      timeout
+    )
   end
 
   # Server Methods
@@ -96,17 +101,18 @@ defmodule Gremlex.Client do
   def handle_call({:query, payload, timeout}, _from, %{socket: socket} = state) do
     Socket.Web.send!(socket, {:text, payload})
 
-    {time, result} = measure(fn ->
-      task = Task.async(fn -> recv(socket) end)
-      Task.await(task, timeout)
-    end)
+    {time, result} =
+      measure(fn ->
+        task = Task.async(fn -> recv(socket) end)
+        Task.await(task, timeout)
+      end)
 
-    Logger.metadata([
+    Logger.metadata(
       query: payload,
       time: time,
       result_status: elem(result, 0),
       result: elem(result, 1)
-    ])
+    )
 
     Logger.info("Query #{payload} took #{time} seconds and result `#{elem(result, 0)}`")
 
@@ -133,6 +139,9 @@ defmodule Gremlex.Client do
   @spec recv(Socket.Web.t(), list()) :: response
   defp recv(socket, acc \\ []) do
     case Socket.Web.recv!(socket) do
+      {:close, :abnormal, nil} ->
+        {:error, :websocket_closed, nil}
+
       {:text, data} ->
         response = Poison.decode!(data)
         result = Deserializer.deserialize(response)
@@ -179,7 +188,7 @@ defmodule Gremlex.Client do
   end
 
   def measure(function) do
-    {time, result} = function |> :timer.tc
+    {time, result} = function |> :timer.tc()
     {Kernel./(time, 1_000_000), result}
   end
 end
