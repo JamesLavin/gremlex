@@ -8,6 +8,7 @@ defmodule Gremlex.GraphTests do
   describe "g/0" do
     test "returns a new queue" do
       assert g() == Queue.new()
+      assert {[], []} == g()
     end
   end
 
@@ -15,6 +16,7 @@ defmodule Gremlex.GraphTests do
     test "adds __ function to the queue" do
       actual_graph = anonymous()
       expected_graph = Queue.in({"__", []}, Queue.new())
+      assert {[{"__", []}], ''} == expected_graph
       assert actual_graph == expected_graph
     end
   end
@@ -23,6 +25,19 @@ defmodule Gremlex.GraphTests do
     test "adds an addVertex function to the queue" do
       actual_graph = g() |> add_v(1)
       expected_graph = Queue.in({"addV", [1]}, Queue.new())
+      assert {[{"addV", [1]}], []} == expected_graph
+      assert actual_graph == expected_graph
+    end
+
+    test "can be chained" do
+      actual_graph =
+        g()
+        |> add_v(1)
+        |> add_v(2)
+        |> add_v(3)
+        |> add_v(4)
+
+      expected_graph = {[{"addV", [4]}, {"addV", [3]}, {"addV", [2]}], [{"addV", [1]}]}
       assert actual_graph == expected_graph
     end
   end
@@ -31,6 +46,13 @@ defmodule Gremlex.GraphTests do
     test "adds an addE step to the queue" do
       actual_graph = g() |> add_e("foo")
       expected_graph = Queue.in({"addE", ["foo"]}, Queue.new())
+      assert expected_graph == {[{"addE", ["foo"]}], []}
+      assert actual_graph == expected_graph
+    end
+
+    test "can be chained" do
+      actual_graph = g() |> add_e("foo") |> add_e("bar") |> add_e("baz")
+      expected_graph = {[{"addE", ["baz"]}, {"addE", ["bar"]}], [{"addE", ["foo"]}]}
       assert actual_graph == expected_graph
     end
   end
@@ -261,7 +283,7 @@ defmodule Gremlex.GraphTests do
     end
 
     test "creates a vertex when the id is a number" do
-      check all n <- integer() do
+      check all(n <- integer()) do
         actual_graph = v(n)
         expected_graph = %Vertex{id: n, label: ""}
         assert actual_graph == expected_graph
@@ -1082,7 +1104,7 @@ defmodule Gremlex.GraphTests do
 
   describe "choose/3" do
     test "adds a choose function to the queue" do
-      actual_graph = g() |> choose(g |> has_label("TEST"), [g |> v("1")])
+      actual_graph = g() |> choose(g() |> has_label("TEST"), [g() |> v("1")])
       has_label_part = Queue.in({"hasLabel", ["TEST"]}, Queue.new())
       vertex_part = Queue.in({"V", ["1"]}, Queue.new())
       expected_graph = Queue.in({"choose", [has_label_part, vertex_part]}, Queue.new())

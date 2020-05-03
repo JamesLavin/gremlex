@@ -2,7 +2,7 @@ defmodule Gremlex.Path do
   alias Gremlex.Path
   alias Gremlex.Deserializer
 
-  @type t :: %Path{labels: List.t(), objects: List.t()}
+  @type t :: %Path{labels: list(), objects: list()}
   @enforce_keys [:labels, :objects]
   @derive [Poison.Encoder]
   defstruct [:labels, :objects]

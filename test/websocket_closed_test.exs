@@ -7,6 +7,6 @@ defmodule Gremlex.WebsocketClosedTest do
     {status, reason, msg} = Gremlex.Client.query(query)
     assert(status == :error)
     assert(reason == :websocket_closed)
-    assert(msg == nil)
+    assert(msg == "Websocket closed unexpectedly")
   end
 end

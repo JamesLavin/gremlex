@@ -42,7 +42,14 @@ defmodule Gremlex.Application do
       max_overflow: max_overflow
     ]
 
-    [:poolboy.child_spec(:gremlex, pool_options, {host, port, path, secure})]
+    [
+      :poolboy.child_spec(:gremlex, pool_options,
+        host: host,
+        port: port,
+        path: path,
+        secure: secure
+      )
+    ]
   end
 
   def start(_type, _args) do

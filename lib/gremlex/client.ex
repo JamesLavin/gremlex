@@ -14,7 +14,7 @@ defmodule Gremlex.Client do
           | {:error, :script_evaluation_error, String.t()}
           | {:error, :server_timeout, String.t()}
           | {:error, :server_serialization_error, String.t()}
-          | {:error, :websocket_closed, nil}
+          | {:error, :websocket_closed, String.t()}
 
   require Logger
   alias Gremlex.Request
@@ -46,13 +46,14 @@ defmodule Gremlex.Client do
     end
   end
 
-  @spec start_link({String.t(), number(), String.t(), boolean()}) :: pid()
-  def start_link({host, port, path, secure}) do
+  @spec start_link(host: String.t(), port: number(), path: String.t(), secure: boolean()) ::
+          {:ok, pid()} | {:error, any()}
+  def start_link(host: host, port: port, path: path, secure: secure) do
     case Socket.Web.connect(host, port, path: path, secure: secure) do
       {:ok, socket} ->
         GenServer.start_link(__MODULE__, socket, [])
 
-      error ->
+      {:error, error} ->
         Logger.error("Error establishing connection to server: #{inspect(error)}")
         GenServer.start_link(__MODULE__, nil, [])
     end
@@ -139,11 +140,11 @@ defmodule Gremlex.Client do
   @spec recv(Socket.Web.t(), list()) :: response
   defp recv(socket, acc \\ []) do
     case Socket.Web.recv!(socket) do
-      {:close, :abnormal, nil} ->
-        {:error, :websocket_closed, nil}
+      {:close, :abnormal, binary_msg} ->
+        {:error, :websocket_closed, "Websocket closed unexpectedly"}
 
-      {:text, data} ->
-        response = Poison.decode!(data)
+      {:text, string_data} ->
+        response = Poison.decode!(string_data)
         result = Deserializer.deserialize(response)
         status = response["status"]["code"]
         error_message = response["status"]["message"]

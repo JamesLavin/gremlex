@@ -53,7 +53,8 @@ defmodule Gremlex.MixProject do
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:mock, "~> 0.2.0", only: :test},
       {:excoveralls, "~> 0.7", only: :test},
-      {:stream_data, "~> 0.1", only: :test}
+      {:stream_data, "~> 0.1", only: :test},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 
