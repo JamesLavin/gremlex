@@ -42,7 +42,6 @@ defmodule Gremlex.Graph do
     end
   end
 
-  # @type t :: {[], []}
   @type t :: Queue.queue(any())
   @default_namespace_property "namespace"
   @default_namespace "gremlex"
@@ -65,6 +64,15 @@ defmodule Gremlex.Graph do
   @spec add_v(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
   def add_v(graph, id) do
     enqueue(graph, "addV", [id])
+  end
+
+  @doc """
+  Appends an addVertex command to the traversal.
+  Returns a graph to allow chaining.
+  """
+  @spec add_vertex(Gremlex.Graph.t(), String.t(), list(tuple)) :: Gremlex.Graph.t()
+  def add_vertex(graph, label, props) do
+    enqueue_add_vertex(graph, "addVertex", label)
   end
 
   @doc """
@@ -479,6 +487,10 @@ defmodule Gremlex.Graph do
     enqueue(graph, "groupCount", key)
   end
 
+  defp enqueue_add_vertex(graph, op, label) do
+    Queue.in({op, [label]}, graph)
+  end
+
   defp enqueue(graph, op, args) when is_list(args) do
     Queue.in({op, args}, graph)
   end
@@ -767,50 +779,58 @@ defmodule Gremlex.Graph do
     {{:value, {op, args}}, remainder} = :queue.out(graph)
 
     args =
-      args
-      |> Enum.map(fn
-        nil ->
-          "none"
+      case op do
+        "addVertex" ->
+          "label,'#{args}'"
 
-        %Gremlex.Vertex{id: id} when is_number(id) ->
-          "V(#{id})"
+        _ ->
+          args
+          |> Enum.map(fn
+            nil ->
+              "none"
 
-        %Gremlex.Vertex{id: id} when is_binary(id) ->
-          "V('#{id}')"
+            %Gremlex.Vertex{id: id} when is_number(id) ->
+              "V(#{id})"
 
-        arg when is_number(arg) or is_atom(arg) ->
-          "#{arg}"
+            %Gremlex.Vertex{id: id} when is_binary(id) ->
+              "V('#{id}')"
 
-        %Range{first: first, last: last} ->
-          "#{first}..#{last}"
+            arg when is_number(arg) or is_atom(arg) ->
+              "#{arg}"
 
-        # arg: {[{"within", [1..18]}], []}
-        # arg: {[{"simplePath", []}, {"bothV", []}, {"as", ["e"]}], [{"bothE", []}]}
-        # arg: {[{"is", [{[{"eq", [2]}], []}]}, {"loops", []}, {"or", []}], [{"hasLabel", ["foo"]}]}
-        # arg: {[{"eq", [2]}], []}
-        # arg: {[{"not", [{[{"inE", ["bar"]}], []}]}], [{"__", []}]}
-        # arg: {[{"inE", ["bar"]}], []}
-        # arg: {[{"unfold", []}], []}
-        # arg: {[{"V", ["2"]}], []}
+            %Range{first: first, last: last} ->
+              "#{first}..#{last}"
 
-        {l, [{"V", _}]} = arg when is_list(l) ->
-          encode(arg, "g")
+            # arg: {[{"within", [1..18]}], []}
+            # arg: {[{"simplePath", []}, {"bothV", []}, {"as", ["e"]}], [{"bothE", []}]}
+            # arg: {[{"is", [{[{"eq", [2]}], []}]}, {"loops", []}, {"or", []}], [{"hasLabel", ["foo"]}]}
+            # arg: {[{"eq", [2]}], []}
+            # arg: {[{"not", [{[{"inE", ["bar"]}], []}]}], [{"__", []}]}
+            # arg: {[{"inE", ["bar"]}], []}
+            # arg: {[{"unfold", []}], []}
+            # arg: {[{"V", ["2"]}], []}
 
-        {[{"V", _} | _], []} = arg ->
-          encode(arg, "g")
+            # :queue.queue(_) = arg and
 
-        # handles a queue like {[{"V", ["2"]}], []}
-        # arg when is_queue_with_vertex(arg) ->
-        #   IO.inspect(arg, label: "arg")
-        #   encode(arg, "g")
+            {l, [{"V", _}]} = arg when is_list(l) ->
+              encode(arg, "g")
 
-        arg when is_tuple(arg) ->
-          encode(arg, "")
+            {[{"V", _} | _], []} = arg ->
+              encode(arg, "g")
 
-        str ->
-          "'#{escape(str)}'"
-      end)
-      |> Enum.join(", ")
+            # handles a queue like {[{"V", ["2"]}], []}
+            # arg when is_queue_with_vertex(arg) ->
+            #   IO.inspect(arg, label: "arg")
+            #   encode(arg, "g")
+
+            arg when is_tuple(arg) ->
+              encode(arg, "")
+
+            str ->
+              "'#{escape(str)}'"
+          end)
+          |> Enum.join(", ")
+      end
 
     construct_fn_call(acc, op, args, remainder)
   end
