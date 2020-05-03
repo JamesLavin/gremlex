@@ -60,9 +60,13 @@ defmodule Gremlex.Graph do
   @doc """
   Appends an addV command to the traversal.
   Returns a graph to allow chaining.
+
+  NOTE: I believe IDs are supposed to be integers,
+  but existing tests allow them to be strings, so I'm
+  not adding `when is_integer(id)` here (for now)
   """
   @spec add_v(Gremlex.Graph.t(), integer()) :: Gremlex.Graph.t()
-  def add_v(graph, id) when is_integer(id) do
+  def add_v(graph, id) do
     enqueue(graph, "addV", [id])
   end
 
@@ -71,7 +75,7 @@ defmodule Gremlex.Graph do
   Returns a graph to allow chaining.
   """
   @spec add_vertex(Gremlex.Graph.t(), String.t(), list(tuple)) :: Gremlex.Graph.t()
-  def add_vertex(graph, label, props) do
+  def add_vertex(graph, label, props \\ []) do
     enqueue_add_vertex(graph, "addVertex", label, props)
   end
 
