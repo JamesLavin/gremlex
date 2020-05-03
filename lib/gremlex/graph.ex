@@ -25,22 +25,26 @@ defmodule Gremlex.Graph do
   #     true;
   # is_queue(_) ->
   #     false.
-  defmacro is_queue_with_vertex(arg) do
-    quote do
-      # case unquote(arg) do
-      #   {h, [{"V", _} | _]} when is_list(h) -> true
-      #   {[{"V", _}], []} -> true
-      #   _ -> false
-      # end
 
-      # (is_tuple(unquote(arg)) and is_list(elem(unquote(arg), 0)) and {"V", _} =
-      #    Enum.at(elem(unquote(arg), 1), 0)) or
-      #   (is_tuple(unquote(arg)) and is_list(elem(unquote(arg), 1)) and {"V", _} =
-      #      Elem.at(elem(unquote(arg), 0), 0))
+  # defmacro is_queue_with_vertex(arg) do
+  #   quote do
+  # Attempt 1:
+  # case unquote(arg) do
+  #   {h, [{"V", _} | _]} when is_list(h) -> true
+  #   {[{"V", _}], []} -> true
+  #   _ -> false
+  # end
 
-      # :queue.is_queue(unquote(arg)) and elem(:queue.get(unquote(arg)), 0) == "V"
-    end
-  end
+  # Attempt 2:
+  # (is_tuple(unquote(arg)) and is_list(elem(unquote(arg), 0)) and {"V", _} =
+  #    Enum.at(elem(unquote(arg), 1), 0)) or
+  #   (is_tuple(unquote(arg)) and is_list(elem(unquote(arg), 1)) and {"V", _} =
+  #      Elem.at(elem(unquote(arg), 0), 0))
+
+  # Attempt 3:
+  # :queue.is_queue(unquote(arg)) and elem(:queue.get(unquote(arg)), 0) == "V"
+  #   end
+  # end
 
   @type t :: Queue.queue(any())
   @default_namespace_property "namespace"
@@ -61,18 +65,30 @@ defmodule Gremlex.Graph do
   Appends an addV command to the traversal.
   Returns a graph to allow chaining.
 
-  NOTE: I believe IDs are supposed to be integers,
+  NOTE: Renaming `id` to `label`. IDs are supposed to be integers,
   but existing tests allow them to be strings, so I'm
   not adding `when is_integer(id)` here (for now)
   """
-  @spec add_v(Gremlex.Graph.t(), integer()) :: Gremlex.Graph.t()
-  def add_v(graph, id) do
-    enqueue(graph, "addV", [id])
+  @spec add_v(Gremlex.Graph.t(), String.t()) :: Gremlex.Graph.t()
+  def add_v(graph, label) do
+    enqueue(graph, "addV", [label])
   end
 
   @doc """
   Appends an addVertex command to the traversal.
   Returns a graph to allow chaining.
+
+  After I created this (after seeing it in http://kelvinlawrence.net/book/Gremlin-Graph-Guide.pdf)
+  but not in the Gremlex API), it didn't work. I found this comment in
+  `http://tinkerpop.apache.org/docs/3.4.6/reference/`:
+
+  "The Graph API (also referred to as the Structure API) is not always accessible
+  to users. Its accessibility is dependent on the choice of graph system and
+  programming language. It is therefore recommended that users avoid usage of methods
+  like Graph.addVertex() or Vertex.properties() and instead prefer use of Gremlin
+  with g.addV() or g.V(1).properties()."
+
+  Leaving this in place for now.
   """
   @spec add_vertex(Gremlex.Graph.t(), String.t(), list(tuple)) :: Gremlex.Graph.t()
   def add_vertex(graph, label, props \\ []) do
