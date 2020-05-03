@@ -61,8 +61,8 @@ defmodule Gremlex.Graph do
   Appends an addV command to the traversal.
   Returns a graph to allow chaining.
   """
-  @spec add_v(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
-  def add_v(graph, id) do
+  @spec add_v(Gremlex.Graph.t(), integer()) :: Gremlex.Graph.t()
+  def add_v(graph, id) when is_integer(id) do
     enqueue(graph, "addV", [id])
   end
 
@@ -72,7 +72,7 @@ defmodule Gremlex.Graph do
   """
   @spec add_vertex(Gremlex.Graph.t(), String.t(), list(tuple)) :: Gremlex.Graph.t()
   def add_vertex(graph, label, props) do
-    enqueue_add_vertex(graph, "addVertex", label)
+    enqueue_add_vertex(graph, "addVertex", label, props)
   end
 
   @doc """
@@ -487,8 +487,8 @@ defmodule Gremlex.Graph do
     enqueue(graph, "groupCount", key)
   end
 
-  defp enqueue_add_vertex(graph, op, label) do
-    Queue.in({op, [label]}, graph)
+  defp enqueue_add_vertex(graph, op, label, props) do
+    Queue.in({op, [label, props]}, graph)
   end
 
   defp enqueue(graph, op, args) when is_list(args) do
@@ -781,7 +781,9 @@ defmodule Gremlex.Graph do
     args =
       case op do
         "addVertex" ->
-          "label,'#{args}'"
+          [label, props] = args
+          str = "label,'#{label}'"
+          Enum.reduce(props, str, fn {key, val}, acc -> "#{acc},'#{key}','#{val}'" end)
 
         _ ->
           args

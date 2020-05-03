@@ -25,10 +25,21 @@ defmodule Gremlex.GraphTests do
     test "adds an addVertex function to the queue when no properties" do
       properties = []
       actual_graph = g() |> add_vertex("vertex label", properties)
-      expected_graph = Queue.in({"addVertex", ["vertex label"]}, Queue.new())
-      assert {[{"addVertex", ["vertex label"]}], []} == expected_graph
+      expected_graph = Queue.in({"addVertex", ["vertex label", []]}, Queue.new())
+      assert {[{"addVertex", ["vertex label", []]}], []} == expected_graph
       assert actual_graph == expected_graph
-      actual_graph |> Graph.encode() |> IO.inspect()
+      assert "g.addVertex(label,'vertex label')" = actual_graph |> Graph.encode()
+    end
+
+    test "adds an addVertex function to the queue with properties" do
+      properties = [{"bestHockeyTeam", "Bruins"}, {"bestFootballTeam", "Patriots"}]
+      actual_graph = g() |> add_vertex("vertex label", properties)
+      expected_graph = Queue.in({"addVertex", ["vertex label", properties]}, Queue.new())
+      assert {[{"addVertex", ["vertex label", properties]}], []} == expected_graph
+      assert actual_graph == expected_graph
+
+      assert "g.addVertex(label,'vertex label','bestHockeyTeam','Bruins','bestFootballTeam','Patriots')" =
+               actual_graph |> Graph.encode()
     end
   end
 
