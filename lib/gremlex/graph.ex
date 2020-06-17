@@ -785,6 +785,11 @@ defmodule Gremlex.Graph do
     enqueue(graph, "order", [])
   end
 
+  @spec local(Gremlex.Graph.t(), Gremlex.Graph.t()) :: Gremlex.Graph.t()
+  def local(graph, traversal) do
+    enqueue(graph, "local", [traversal])
+  end
+
   @doc """
   Compiles a graph into the Gremlin query.
   """
