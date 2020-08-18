@@ -46,7 +46,7 @@ defmodule Gremlex.MixProject do
       {:poison, "~> 3.1"},
       {:httpoison, "~> 1.3.1"},
       {:confex, "~> 3.2.3"},
-      {:uuid, "~> 1.1"},
+      {:elixir_uuid, "~> 1.2"},
       {:poolboy, "~> 1.5.1"},
       {:socket, "~> 0.3"},
       {:mix_test_watch, "~> 0.3", only: :dev, runtime: false},
