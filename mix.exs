@@ -4,8 +4,8 @@ defmodule Gremlex.MixProject do
   def project do
     [
       app: :gremlex,
-      version: "0.3.2",
-      elixir: "~> 1.6",
+      version: "0.3.3",
+      elixir: "~> 1.8",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
