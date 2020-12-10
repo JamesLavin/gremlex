@@ -43,7 +43,7 @@ defmodule Gremlex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:poison, "~> 4.0"},
+      {:poison, "~> 4.0.1"},
       {:httpoison, "~> 1.7"},
       {:confex, "~> 3.5"},
       {:elixir_uuid, "~> 1.2"},
