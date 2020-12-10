@@ -80,7 +80,8 @@ defmodule Gremlex.Client do
   * query - A `Gremlex.Graph.t` or raw String query
   * timeout (Default: 5000ms) - Timeout in milliseconds to pass to GenServer and Task.await call
   """
-  @spec query(Gremlex.Graph.t() | String.t(), number() | :infinity) :: response
+  @spec query(Gremlex.Graph.t() | String.t(), number() | :infinity) ::
+          {:ok, any()} | {:error, atom(), String.t()}
   def query(query, timeout \\ 5000) do
     payload =
       query
@@ -141,6 +142,9 @@ defmodule Gremlex.Client do
   defp recv(socket, acc \\ []) do
     case Socket.Web.recv!(socket) do
       {:close, :abnormal, binary_msg} ->
+        {:error, :websocket_closed, "Websocket closed unexpectedly"}
+
+      {:close, :normal, "Bye"} ->
         {:error, :websocket_closed, "Websocket closed unexpectedly"}
 
       {:text, string_data} ->

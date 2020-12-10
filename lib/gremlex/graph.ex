@@ -237,6 +237,11 @@ defmodule Gremlex.Graph do
   Appends values command to the traversal.
   Returns a graph to allow chaining.
   """
+  @spec values(Gremlex.Graph.t()) :: Gremlex.Graph.t()
+  def values(graph) do
+    enqueue(graph, "values", [])
+  end
+
   @spec values(Gremlex.Graph.t(), String.t()) :: Gremlex.Graph.t()
   def values(graph, key) do
     enqueue(graph, "values", [key])
@@ -661,6 +666,16 @@ defmodule Gremlex.Graph do
     enqueue(graph, "until", [traversal])
   end
 
+  @spec order(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
+  def order(graph, target) do
+    enqueue(graph, "order", [target])
+  end
+
+  @spec local(Gremlex.Graph.t()) :: Gremlex.Graph.t()
+  def local(graph) do
+    enqueue(graph, "local", [])
+  end
+
   @spec loops(Gremlex.Graph.t()) :: Gremlex.Graph.t()
   def loops(graph) do
     enqueue(graph, "loops", [])
@@ -689,6 +704,11 @@ defmodule Gremlex.Graph do
   @spec where(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
   def where(graph, traversal) do
     enqueue(graph, "where", [traversal])
+  end
+
+  @spec neq(Gremlex.Graph.t(), number()) :: Gremlex.Graph.t()
+  def neq(graph, number) do
+    enqueue(graph, "neq", [number])
   end
 
   @spec not_(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
