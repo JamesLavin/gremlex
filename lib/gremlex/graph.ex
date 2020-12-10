@@ -666,14 +666,14 @@ defmodule Gremlex.Graph do
     enqueue(graph, "until", [traversal])
   end
 
-  @spec order(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
-  def order(graph, target) do
-    enqueue(graph, "order", [target])
-  end
-
   @spec local(Gremlex.Graph.t()) :: Gremlex.Graph.t()
   def local(graph) do
     enqueue(graph, "local", [])
+  end
+
+  @spec local(Gremlex.Graph.t(), Gremlex.Graph.t()) :: Gremlex.Graph.t()
+  def local(graph, traversal) do
+    enqueue(graph, "local", [traversal])
   end
 
   @spec loops(Gremlex.Graph.t()) :: Gremlex.Graph.t()
@@ -805,9 +805,9 @@ defmodule Gremlex.Graph do
     enqueue(graph, "order", [])
   end
 
-  @spec local(Gremlex.Graph.t(), Gremlex.Graph.t()) :: Gremlex.Graph.t()
-  def local(graph, traversal) do
-    enqueue(graph, "local", [traversal])
+  @spec order(Gremlex.Graph.t(), any()) :: Gremlex.Graph.t()
+  def order(graph, target) do
+    enqueue(graph, "order", [target])
   end
 
   @doc """
